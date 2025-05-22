@@ -1,42 +1,20 @@
 import sqlite3
-
-conn = sqlite3.connect('products.db')
-cursor = conn.cursor()
-
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    priceWas REAL,
-    priceIs REAL,
-    difference REAL,
-    discount REAL,
-    link TEXT,
-    image TEXT
-)
-''')
-conn.commit()
-
-def save_product(item):
-    cursor.execute('''
-        INSERT INTO products (name, priceWas, priceIs, difference, discount, link, image) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        item.get('name'),
-        item.get('priceWas'),
-        item.get('priceIs'),
-        item.get('difference'),
-        item.get('discount'),
-        item.get('link'),
-        item.get('image')
-    ))
-    conn.commit()
+from db import create_database, save_product
 
 class JdscraperPipeline:
     def open_spider(self, spider):
-        # حذف تمام محصولات قبلی برای تازه‌سازی دیتابیس
-        cursor.execute('DELETE FROM products')
-        conn.commit()
+        # دیتابیس ساخته و جدول ایجاد می‌شود
+        create_database()
+        # اتصال دیتابیس باز می‌شود
+        self.conn = sqlite3.connect('products.db')
+        self.cursor = self.conn.cursor()
+        # حذف تمام داده‌های قبلی برای تازه‌سازی
+        self.cursor.execute('DELETE FROM products')
+        self.conn.commit()
+
+    def close_spider(self, spider):
+        # بستن اتصال دیتابیس
+        self.conn.close()
 
     def process_item(self, item, spider):
         save_product(item)
