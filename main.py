@@ -9,7 +9,7 @@ import asyncio
 from scrapy.crawler import CrawlerRunner
 from twisted.internet import reactor
 from scrapy.utils.log import configure_logging
-from jdscraper.jdsports_spider import JDSportsSpider
+from jdscraper.spiders.jdsports_spider import JDSportsSpider
 from scrapy.utils.project import get_project_settings
 from twisted.internet.defer import Deferred
 
