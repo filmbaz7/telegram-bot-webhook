@@ -5,6 +5,14 @@ from telegram import Bot, Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 import asyncio
 
+# برای اجرای Scrapy در async
+from scrapy.crawler import CrawlerRunner
+from twisted.internet import reactor
+from scrapy.utils.log import configure_logging
+from jdscraper.jdsports_spider import JDSportsSpider
+from scrapy.utils.project import get_project_settings
+from twisted.internet.defer import Deferred
+
 TOKEN = "7633382786:AAFEy54nrYrhW-5KKAxk_J-_JMt52DFu1Y8"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -116,12 +124,34 @@ async def send_periodic_deals():
 
         await asyncio.sleep(180)  # صبر 3 دقیقه
 
-# --- راه‌اندازی کامل application در startup و مدیریت lifecycle ---
+# --- اجرای Scrapy در sync (داخل ترد جداگانه) ---
+def run_spider():
+    configure_logging()
+    runner = CrawlerRunner(get_project_settings())
+
+    deferred = runner.crawl(JDSportsSpider)
+    deferred.addBoth(lambda _: reactor.stop())
+    reactor.run()
+
+async def run_spider_async():
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, run_spider)
+
+# --- اجرای Scrapy هر 15 دقیقه ---
+async def periodic_scrape():
+    while True:
+        print("شروع اسکرپ جدید...")
+        await run_spider_async()
+        print("اسکرپ کامل شد.")
+        await asyncio.sleep(900)  # 15 دقیقه
+
+# --- استارتاپ و شات‌دان برنامه ---
 @app.on_event("startup")
 async def startup_event():
     await application.initialize()
     await application.start()
     asyncio.create_task(send_periodic_deals())
+    asyncio.create_task(periodic_scrape())
 
 @app.on_event("shutdown")
 async def shutdown_event():
