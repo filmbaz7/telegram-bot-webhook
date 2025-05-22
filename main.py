@@ -116,7 +116,14 @@ async def send_periodic_deals():
 
         await asyncio.sleep(180)  # صبر 3 دقیقه
 
-# شروع تسک ارسال دوره‌ای (با BackgroundTasks یا asyncio.create_task)
+# --- راه‌اندازی کامل application در startup و مدیریت lifecycle ---
 @app.on_event("startup")
 async def startup_event():
+    await application.initialize()
+    await application.start()
     asyncio.create_task(send_periodic_deals())
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await application.stop()
+    await application.shutdown()
