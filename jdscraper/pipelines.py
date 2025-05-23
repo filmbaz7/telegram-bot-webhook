@@ -1,10 +1,10 @@
-import sqlite3
-conn = sqlite3.connect('products.db')
+from .db import get_connection  # فرض کنیم هر دو داخل یه پوشه هستن
+
 class JdscraperPipeline:
     def open_spider(self, spider):
         self.conn = get_connection()
         self.cursor = self.conn.cursor()
-        print("Deleting old products...")  # برای اطمینان از اجرای پاکسازی
+        print("Deleting old products...")  # برای اطمینان
         self.cursor.execute('DELETE FROM products')
         self.conn.commit()
 
