@@ -40,7 +40,8 @@ def init_products_db():
         priceWas REAL,
         priceIs REAL,
         discount INTEGER,
-        link TEXT
+        link TEXT,
+        image TEXT
     )
     """)
     cursor.execute("""
@@ -51,19 +52,19 @@ def init_products_db():
     conn.commit()
     conn.close()
 
-def add_difference_column_if_not_exists():
+def add_image_column_if_not_exists():
     conn = sqlite3.connect(products_db_path)
     cursor = conn.cursor()
     cursor.execute("PRAGMA table_info(products)")
     columns = [col[1] for col in cursor.fetchall()]
-    if 'difference' not in columns:
+    if 'image' not in columns:
         try:
-            cursor.execute("ALTER TABLE products ADD COLUMN difference REAL DEFAULT 0")
-            print("ستون difference اضافه شد.")
+            cursor.execute("ALTER TABLE products ADD COLUMN image TEXT DEFAULT ''")
+            print("ستون image اضافه شد.")
         except Exception as e:
-            print("خطا در اضافه کردن ستون difference:", e)
+            print("خطا در اضافه کردن ستون image:", e)
     else:
-        print("ستون difference قبلا وجود دارد.")
+        print("ستون image قبلا وجود دارد.")
     conn.commit()
     conn.close()
 
@@ -90,7 +91,7 @@ def get_discounted_products(min_discount=30, limit=10):
     conn = sqlite3.connect(products_db_path)
     cursor = conn.cursor()
     cursor.execute("""
-    SELECT name, priceWas, priceIs, discount, link
+    SELECT name, priceWas, priceIs, discount, link, image
     FROM products
     WHERE discount >= ?
     ORDER BY discount DESC
@@ -129,13 +130,14 @@ async def deals(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="هیچ محصولی با تخفیف بالای ۳۰٪ پیدا نشد.")
         return
 
-    for name, priceWas, priceIs, discount, link in products:
+    for name, priceWas, priceIs, discount, link, image in products:
         text = (
             f"نام محصول: {name}\n"
             f"قیمت قبل: {priceWas} یورو\n"
             f"قیمت فعلی: {priceIs} یورو\n"
             f"تخفیف: {discount}%\n"
-            f"لینک: {link}"
+            f"لینک: {link}\n"
+            f"تصویر: {image}"
         )
         await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
 
@@ -157,7 +159,7 @@ async def send_periodic_deals():
         users = get_all_users()
         products = get_discounted_products()
 
-        for name, priceWas, priceIs, discount, link in products:
+        for name, priceWas, priceIs, discount, link, image in products:
             discount_key = f"{name}|{priceIs}"
             if is_discount_sent(discount_key):
                 continue
@@ -166,7 +168,8 @@ async def send_periodic_deals():
                 f"قیمت قبل: {priceWas} یورو\n"
                 f"قیمت فعلی: {priceIs} یورو\n"
                 f"تخفیف: {discount}%\n"
-                f"لینک: {link}"
+                f"لینک: {link}\n"
+                f"تصویر: {image}"
             )
             for chat_id in users:
                 try:
@@ -198,7 +201,7 @@ async def periodic_scrape():
 async def startup_event():
     await application.initialize()
     await application.start()
-    add_difference_column_if_not_exists()  # اضافه کردن ستون difference اگر نبود
+    add_image_column_if_not_exists()  # اضافه کردن ستون image اگر نبود
     asyncio.create_task(send_periodic_deals())
     asyncio.create_task(periodic_scrape())
 
