@@ -20,23 +20,5 @@ def create_database():
     conn.commit()
     conn.close()
 
-def save_product(product):
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    try:
-        c.execute('''
-            INSERT INTO products (name, priceWas, priceIs, difference, discount, link, image)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            product['name'],
-            product['priceWas'],
-            product['priceIs'],
-            product['difference'],
-            product['discount'],
-            product['link'],
-            product['image']
-        ))
-        conn.commit()
-    except sqlite3.IntegrityError:
-        pass
-    conn.close()
+def get_connection():
+    return sqlite3.connect(DB_NAME)
