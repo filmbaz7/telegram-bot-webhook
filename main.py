@@ -11,7 +11,7 @@ from scrapy.utils.log import configure_logging
 from jdscraper.spiders.jdsports_spider import JDSportsSpider
 from scrapy.utils.project import get_project_settings
 
-TOKEN = "توکن‌_خودت_را_اینجا_بذار"
+TOKEN = "7633382786:AAFEy54nrYrhW-5KKAxk_J-_JMt52DFu1Y8"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
