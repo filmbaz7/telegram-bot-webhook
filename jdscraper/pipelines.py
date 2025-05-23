@@ -1,5 +1,5 @@
-from db import get_connection
-
+import sqlite3
+conn = sqlite3.connect('products.db')
 class JdscraperPipeline:
     def open_spider(self, spider):
         self.conn = get_connection()
