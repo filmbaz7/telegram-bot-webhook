@@ -51,6 +51,22 @@ def init_products_db():
     conn.commit()
     conn.close()
 
+def add_difference_column_if_not_exists():
+    conn = sqlite3.connect(products_db_path)
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA table_info(products)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if 'difference' not in columns:
+        try:
+            cursor.execute("ALTER TABLE products ADD COLUMN difference REAL DEFAULT 0")
+            print("ستون difference اضافه شد.")
+        except Exception as e:
+            print("خطا در اضافه کردن ستون difference:", e)
+    else:
+        print("ستون difference قبلا وجود دارد.")
+    conn.commit()
+    conn.close()
+
 init_users_db()
 init_products_db()
 
@@ -182,6 +198,7 @@ async def periodic_scrape():
 async def startup_event():
     await application.initialize()
     await application.start()
+    add_difference_column_if_not_exists()  # اضافه کردن ستون difference اگر نبود
     asyncio.create_task(send_periodic_deals())
     asyncio.create_task(periodic_scrape())
 
