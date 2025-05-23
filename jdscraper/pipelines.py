@@ -1,4 +1,4 @@
-from .db import get_connection  # فرض کنیم هر دو داخل یه پوشه هستن
+from .db import get_connection  # فرض می‌کنیم db.py کنار این فایل هست
 
 class JdscraperPipeline:
     def open_spider(self, spider):
